@@ -2,15 +2,15 @@
 from vex import *
 import math
 
-brain = Brain(),
-controller_1 = Controller(PRIMARY),
+brain = Brain()
+controller_1 = Controller(PRIMARY)
 
-left_motor_a = Motor(Ports.PORT1, GearSetting.RATIO_36_1, True),
-left_motor_b = Motor(Ports.PORT2, GearSetting.RATIO_36_1, True),
+left_motor_a = Motor(Ports.PORT1, GearSetting.RATIO_36_1, True)
+left_motor_b = Motor(Ports.PORT2, GearSetting.RATIO_36_1, True)
 left_drive_smart = MotorGroup(left_motor_a, left_motor_b)
 
-right_motor_a = Motor(Ports.PORT3, GearSetting.RATIO_36_1, False),
-right_motor_b = Motor(Ports.PORT4, GearSetting.RATIO_36_1, False),
+right_motor_a = Motor(Ports.PORT3, GearSetting.RATIO_36_1, False)
+right_motor_b = Motor(Ports.PORT4, GearSetting.RATIO_36_1, False)
 right_drive_smart = MotorGroup(right_motor_a, right_motor_b)
 
 donut_elevator = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
@@ -27,7 +27,7 @@ donut_elevator_moving = False
 
 #region Math functions (logistic, get_velocity, limit)
 def logistic(x: float) -> float:
-    # See https://www.desmos.com/calculator/4hrf2l0lzf
+    # See https://www.desmos.com/calculator/ckpeuxjv0c
 
     # max value of output
     M = 100
@@ -55,10 +55,10 @@ def get_velocity(val: float, current_speed=100.0) -> float:
 
     # Create range where speed snaps to magic number 63
     # 63% speed is max power consumption.
-    if 51 <= val <= 64:
+    if 51 <= val <= 75:
         return sgn * (val + 10)
 
-    if 65 <= val <= 100:
+    if 76 <= val <= 100:
         # Improve acceleration when flooring accelerator
         if current_speed < 55:
             return sgn * 60
@@ -118,15 +118,20 @@ def update():
     controller_1.screen.set_cursor(1, 1)
     controller_1.screen.print("Turning", turn_velocity)
 
-    left_drive_smart.spin(FORWARD, limit(target_velocity + turn_velocity), VelocityUnits.PERCENT)
-    right_drive_smart.spin(FORWARD, limit(target_velocity - turn_velocity), VelocityUnits.PERCENT)
+    left_drive_smart.spin(FORWARD, limit(target_velocity + turn_velocity), PERCENT)
+    right_drive_smart.spin(FORWARD, limit(target_velocity - turn_velocity), PERCENT)
 
 def main():
-    global controller_1
+    global controller_1, left_drive_smart, right_drive_smart
+
+    left_drive_smart.set_stopping(COAST)
+    right_drive_smart.set_stopping(COAST)
 
     # Init callback
     controller_1.buttonR2.pressed(toggle_stake_piston)
     controller_1.buttonR1.pressed(toggle_stake_piston)
+    controller_1.buttonA.pressed(toggle_donut_elevator)
+    controller_1.buttonB.pressed(toggle_donut_elevator)
 
     while True:
         update()
