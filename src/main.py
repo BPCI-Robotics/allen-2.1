@@ -118,8 +118,8 @@ def update():
     controller_1.screen.set_cursor(1, 1)
     controller_1.screen.print("Turning", turn_velocity)
 
-    left_drive_smart.spin(FORWARD, target_velocity + turn_velocity, VelocityUnits.PERCENT)
-    right_drive_smart.spin(FORWARD, target_velocity - turn_velocity, VelocityUnits.PERCENT)
+    left_drive_smart.spin(FORWARD, limit(target_velocity + turn_velocity), VelocityUnits.PERCENT)
+    right_drive_smart.spin(FORWARD, limit(target_velocity - turn_velocity), VelocityUnits.PERCENT)
 
 def main():
     global controller_1
@@ -127,3 +127,9 @@ def main():
     # Init callback
     controller_1.buttonR2.pressed(toggle_stake_piston)
     controller_1.buttonR1.pressed(toggle_stake_piston)
+
+    while True:
+        update()
+
+if __name__ == "__main__":
+    main()
