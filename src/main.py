@@ -67,12 +67,12 @@ def get_velocity(val: float, current_speed=100.0) -> float:
     
     return 0
 
-def limit(x):
+def limit(x: float) -> float:
+    sign = 0
+
     if x == 0:
         return 0
     
-    sign = 0
-
     if x < 0:
         sign = -1
     else:
@@ -84,22 +84,25 @@ def limit(x):
         return x
 #endregion
 
-def toggle_stake_piston():
+#region Callbacks
+def toggle_stake_piston() -> None:
     global stake_piston_extended, stake_piston
 
     stake_piston_extended = not stake_piston_extended
     stake_piston.set(stake_piston_extended)
 
-def toggle_donut_elevator():
+def toggle_donut_elevator() -> None:
     global donut_elevator_moving, donut_elevator
 
     donut_elevator_moving = not donut_elevator_moving
     donut_elevator.spin(FORWARD, 100 * donut_elevator_moving, PERCENT)
+#endregion
 
+def update():
+    global velocity, accel_stick, turn_stick, target_velocity, turn_velocity
+    global controller_1, left_drive_smart, right_drive_smart
 
-def update(S, D):
-
-    # Update s
+    # Update state
     velocity = (left_drive_smart.velocity(PERCENT) + right_drive_smart.velocity(PERCENT)) / 2
     accel_stick = controller_1.axis2.position()
     turn_stick = controller_1.axis4.position()
@@ -119,7 +122,7 @@ def update(S, D):
     right_drive_smart.spin(FORWARD, target_velocity - turn_velocity, VelocityUnits.PERCENT)
 
 def main():
-
+    global controller_1
 
     # Init callback
     controller_1.buttonR2.pressed(toggle_stake_piston)
