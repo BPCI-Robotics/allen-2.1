@@ -5,12 +5,12 @@ import math
 brain = Brain()
 controller_1 = Controller(PRIMARY)
 
-left_motor_a = Motor(Ports.PORT1, GearSetting.RATIO_36_1, True)
-left_motor_b = Motor(Ports.PORT2, GearSetting.RATIO_36_1, True)
+left_motor_a = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
+left_motor_b = Motor(Ports.PORT2, GearSetting.RATIO_18_1, False)
 left_drive_smart = MotorGroup(left_motor_a, left_motor_b)
 
-right_motor_a = Motor(Ports.PORT3, GearSetting.RATIO_36_1, False)
-right_motor_b = Motor(Ports.PORT4, GearSetting.RATIO_36_1, False)
+right_motor_a = Motor(Ports.PORT3, GearSetting.RATIO_18_1, True)
+right_motor_b = Motor(Ports.PORT4, GearSetting.RATIO_18_1, True)
 right_drive_smart = MotorGroup(right_motor_a, right_motor_b)
 
 donut_elevator = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
