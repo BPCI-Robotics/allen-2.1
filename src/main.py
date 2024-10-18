@@ -21,8 +21,7 @@ accel_stick = 0
 turn_stick = 0
 target_velocity = 0
 turning_velocity = 0
-stake_piston_extended = False
-donut_elevator_moving = False
+donut_elevator_moving = True # on by default
 #endregion
 
 #region Math functions (logistic, get_velocity, limit)
@@ -85,12 +84,6 @@ def limit(x: float) -> float:
 #endregion
 
 #region Callbacks
-def toggle_stake_piston() -> None:
-    global stake_piston_extended, stake_piston
-
-    stake_piston_extended = not stake_piston_extended
-    stake_piston.set(stake_piston_extended)
-
 def toggle_donut_elevator() -> None:
     global donut_elevator_moving, donut_elevator
 
@@ -107,7 +100,7 @@ def update():
     accel_stick = controller_1.axis2.position()
     turn_stick = controller_1.axis4.position()
     target_velocity = get_velocity(accel_stick, velocity)
-    turn_velocity = get_velocity(turn_stick, 100) * 0.5
+    turn_velocity = get_velocity(turn_stick, 100)
 
     # Rumble controller when full power being used
     if 51 <= abs(accel_stick) <= 64:
@@ -121,15 +114,15 @@ def update():
     left_drive_smart.spin(FORWARD, limit(target_velocity + turn_velocity), PERCENT)
     right_drive_smart.spin(FORWARD, limit(target_velocity - turn_velocity), PERCENT)
 
-def main():
-    global controller_1, left_drive_smart, right_drive_smart
+def start():
+    global controller_1, left_drive_smart, right_drive_smart, stake_piston
 
     left_drive_smart.set_stopping(COAST)
     right_drive_smart.set_stopping(COAST)
 
     # Init callback
-    controller_1.buttonR2.pressed(toggle_stake_piston)
-    controller_1.buttonR1.pressed(toggle_stake_piston)
+    controller_1.buttonR2.pressed(stake_piston.set, (True,))
+    controller_1.buttonR2.released(stake_piston.set, (False,))
     controller_1.buttonA.pressed(toggle_donut_elevator)
     controller_1.buttonB.pressed(toggle_donut_elevator)
 
@@ -137,4 +130,4 @@ def main():
         update()
 
 if __name__ == "__main__":
-    main()
+    start()
