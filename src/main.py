@@ -15,6 +15,7 @@ right_drive_smart = MotorGroup(right_motor_a, right_motor_b)
 
 donut_elevator = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
 stake_piston = DigitalOut(brain.three_wire_port.a)
+chain_button = Bumper(brain.three_wire_port.b)
     
 velocity = 0
 accel_stick = 0
