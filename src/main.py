@@ -3,26 +3,30 @@ from vex import *
 import math
 
 brain = Brain()
-controller_1 = Controller(PRIMARY)
+controller = Controller(PRIMARY)
 
-left_motor_a = Motor(Ports.PORT1, GearSetting.RATIO_18_1, False)
-left_motor_b = Motor(Ports.PORT2, GearSetting.RATIO_18_1, False)
-left_drive_smart = MotorGroup(left_motor_a, left_motor_b)
+left_group = MotorGroup(
+                Motor(Ports.PORT1, GearSetting.RATIO_18_1, False),
+                Motor(Ports.PORT2, GearSetting.RATIO_18_1, False)
+            )
 
-right_motor_a = Motor(Ports.PORT3, GearSetting.RATIO_18_1, True)
-right_motor_b = Motor(Ports.PORT4, GearSetting.RATIO_18_1, True)
-right_drive_smart = MotorGroup(right_motor_a, right_motor_b)
+right_group = MotorGroup(
+                Motor(Ports.PORT3, GearSetting.RATIO_18_1, True), 
+                Motor(Ports.PORT4, GearSetting.RATIO_18_1, True)
+            )
 
 donut_elevator = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
 stake_piston = DigitalOut(brain.three_wire_port.a)
-chain_button = Bumper(brain.three_wire_port.b)
-    
+# chain_button = Bumper(brain.three_wire_port.b)
+
 velocity = 0
 accel_stick = 0
 turn_stick = 0
 target_velocity = 0
 turning_velocity = 0
-donut_elevator_moving = True # on by default
+
+DONUT_ELEVATOR_FORWARD_VELOCITY = 50
+DONUT_ELEVATOR_REVERSE_VELOCITY = 30
 #endregion
 
 #region Math functions (logistic, get_velocity, limit)
@@ -84,51 +88,45 @@ def limit(x: float) -> float:
         return x
 #endregion
 
-#region Callbacks
-def toggle_donut_elevator() -> None:
-    global donut_elevator_moving, donut_elevator
+def init():
+    global controller, left_group, right_group, stake_piston
 
-    donut_elevator_moving = not donut_elevator_moving
-    donut_elevator.spin(FORWARD, 100 * donut_elevator_moving, PERCENT)
-#endregion
+    left_group.set_stopping(COAST)
+    right_group.set_stopping(COAST)
 
-def update():
+    # Init callback
+    controller.buttonR2.pressed(stake_piston.set, (True,))
+    controller.buttonR2.released(stake_piston.set, (False,))
+
+    controller.buttonA.pressed(donut_elevator.spin, (FORWARD, DONUT_ELEVATOR_FORWARD_VELOCITY, PERCENT))
+    controller.buttonB.pressed(donut_elevator.spin, (FORWARD, 0, PERCENT))
+    controller.buttonX.pressed(donut_elevator.spin, (REVERSE, DONUT_ELEVATOR_REVERSE_VELOCITY, PERCENT))
+
+
+def loop():
     global velocity, accel_stick, turn_stick, target_velocity, turn_velocity
-    global controller_1, left_drive_smart, right_drive_smart
+    global controller, left_group, right_group
 
     # Update state
-    velocity = (left_drive_smart.velocity(PERCENT) + right_drive_smart.velocity(PERCENT)) / 2
-    accel_stick = controller_1.axis2.position()
-    turn_stick = controller_1.axis4.position()
+    velocity = (left_group.velocity(PERCENT) + right_group.velocity(PERCENT)) / 2
+    accel_stick = controller.axis2.position()
+    turn_stick = controller.axis4.position()
     target_velocity = get_velocity(accel_stick, velocity)
     turn_velocity = get_velocity(turn_stick, 100)
 
     # Rumble controller when full power being used
     if 51 <= abs(accel_stick) <= 64:
-        controller_1.rumble("--")
+        controller.rumble("--")
     
     # Update controller screen
-    controller_1.screen.clear_screen()
-    controller_1.screen.set_cursor(1, 1)
-    controller_1.screen.print("Turning", turn_velocity)
+    controller.screen.clear_screen()
+    controller.screen.set_cursor(1, 1)
+    controller.screen.print("Turning", turn_velocity)
 
-    left_drive_smart.spin(FORWARD, limit(target_velocity + turn_velocity), PERCENT)
-    right_drive_smart.spin(FORWARD, limit(target_velocity - turn_velocity), PERCENT)
+    left_group.spin(FORWARD, limit(target_velocity + turn_velocity), PERCENT)
+    right_group.spin(FORWARD, limit(target_velocity - turn_velocity), PERCENT)
 
-def start():
-    global controller_1, left_drive_smart, right_drive_smart, stake_piston
-
-    left_drive_smart.set_stopping(COAST)
-    right_drive_smart.set_stopping(COAST)
-
-    # Init callback
-    controller_1.buttonR2.pressed(stake_piston.set, (True,))
-    controller_1.buttonR2.released(stake_piston.set, (False,))
-    controller_1.buttonA.pressed(toggle_donut_elevator)
-    controller_1.buttonB.pressed(toggle_donut_elevator)
-
-    while True:
-        update()
 
 if __name__ == "__main__":
-    start()
+    while True:
+        loop()
