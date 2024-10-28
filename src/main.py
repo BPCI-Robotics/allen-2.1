@@ -1,6 +1,8 @@
 #region Set up code
 from vex import *
-import math
+
+from math_tools import *
+from telemetry import *
 
 brain = Brain()
 controller = Controller(PRIMARY)
@@ -27,65 +29,6 @@ turning_velocity = 0
 
 DONUT_ELEVATOR_FORWARD_VELOCITY = 50
 DONUT_ELEVATOR_REVERSE_VELOCITY = 30
-#endregion
-
-#region Math functions (logistic, get_velocity, limit)
-def logistic(x: float) -> float:
-    # See https://www.desmos.com/calculator/ckpeuxjv0c
-
-    # max value of output
-    M = 100
-
-    # The slope I guess
-    k = 0.15
-
-    # adjustment (put center at 50)
-    a = 50
-
-    return M / (1 + math.exp(-k*(x - a)))
-
-def get_velocity(val: float, current_speed=100.0) -> float:
-
-    sgn = 1
-
-    if val < 0:
-        val = abs(val)
-        sgn = -1
-
-    # Controller value is within 0 < val <= 100
-
-    if 0 < val <= 50:
-        return sgn * math.ceil(logistic(val))
-
-    # Create range where speed snaps to magic number 63
-    # 63% speed is max power consumption.
-    if 51 <= val <= 75:
-        return sgn * (val + 10)
-
-    if 76 <= val <= 100:
-        # Improve acceleration when flooring accelerator
-        if current_speed < 55:
-            return sgn * 60
-        else:
-            return sgn * math.ceil(logistic(val))
-    
-    return 0
-
-def limit(x: float) -> float:
-    sign = 0
-
-    if x == 0:
-        return 0
-    
-    if x < 0:
-        sign = -1
-    else:
-        sign = 1
-    
-    if sign*x >= 100:
-        return sign*100
-    else:
-        return x
 #endregion
 
 def init():
