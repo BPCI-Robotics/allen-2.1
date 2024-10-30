@@ -26,6 +26,13 @@ class RoboData:
 
         threading.Thread(target=self.telemetry_loop).start()
     
+    def update_velocities(self):
+        left = self.left_group.velocity(RPM)
+        right = self.right_group.velocity(RPM)
+
+        left /= 60
+        right /= 60
+
     def telemetry_loop(self):
         start_time = time.perf_counter()
 
