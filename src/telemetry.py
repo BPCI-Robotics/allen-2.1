@@ -4,7 +4,7 @@ import threading, time
 FREQUENCY = 60 # updates per second
 
 class RoboData:
-    def __init__(self, pos: tuple[float, float], rot: float, motors: Tuple[MotorGroup, MotorGroup], wheelbase_width: int):
+    def __init__(self, pos: tuple[float, float], rot: float, motors: tuple[MotorGroup, MotorGroup], wheelbase_width: int):
 
         # Position is defined as metres from the point (0, 0) 
         # where positive and negative directions are arbitrary.
