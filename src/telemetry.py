@@ -1,5 +1,6 @@
 from vex import *
-import threading, time
+import threading, time, math
+from math_tools import *
 
 FREQUENCY = 60 # updates per second
 
@@ -14,39 +15,30 @@ class RoboData:
         self.rot = rot
         self.left_group, self.right_group = motors
 
-        self.x_vel = 0.0 # m/s
-        self.y_vel = 0.0 # m/s
-        
-        # The velocity could not be in a different direction from the robot.
-        self.vel = 0.0 # m/s
+        self.left_angle = 0.0
+        self.right_angle = 0.0
 
-        # But the acceleration could.
-        self.accel_val = 0.0 # m/s^2
-        self.accel_dir = 0.0 # radians
+        self.wheelbase = wheelbase_width
 
         threading.Thread(target=self.telemetry_loop).start()
-    
-    def update_velocities(self):
-        left = self.left_group.velocity(RPM)
-        right = self.right_group.velocity(RPM)
-
-        left /= 60
-        right /= 60
 
     def telemetry_loop(self):
         start_time = time.perf_counter()
 
-        # Code goes under here.
+        left_angle_new = self.left_group.position(DEGREES)
+        right_angle_new = self.right_group.position(DEGREES)
 
-        self.x_vel = self.left_group.velocity(PERCENT)
-        self.y_vel = self.right_group.velocity(PERCENT)
+        delta_left_angle = left_angle_new - self.left_angle
+        delta_right_angle = right_angle_new - self.right_angle
 
-        self.x += self.x_vel / FREQUENCY
-        self.y += self.y_vel / FREQUENCY
+        delta_left_distance = convert(delta_left_angle, "deg", "rad") * WHEEL_RADIUS
+        delta_right_distance = convert(delta_right_angle, "deg", "rad") * WHEEL_RADIUS
+
+        delta_forward_distance = (delta_left_distance + delta_right_distance) / 2
         
-        self.vel = (self.x_vel + self.y_vel) / 2
+        delta_angle = (delta_right_distance - delta_left_distance) / self.wheelbase
 
-        # Code goes above here.
+        
 
         end_time = time.perf_counter()
         time_spent = end_time - start_time

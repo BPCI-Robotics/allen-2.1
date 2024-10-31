@@ -8,6 +8,7 @@ BATTERY_CAPACITY = 50400 # J
 MOTOR_SPEED = 376.9911 # rad/s
 FIELD_LENGTH = 3.658 # m
 LADDER_SIZE = 0.8509 # m
+WHEEL_RADIUS = 0.0508 # m
 
 def logistic(x: float) -> float:
     # See https://www.desmos.com/calculator/ckpeuxjv0c
