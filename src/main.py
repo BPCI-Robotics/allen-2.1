@@ -1,3 +1,5 @@
+AUTON_TESTING = True
+
 #region Set up code
 from vex import *
 
@@ -20,6 +22,15 @@ right_group = MotorGroup(
 donut_elevator = Motor(Ports.PORT10, GearSetting.RATIO_18_1, False)
 stake_piston = DigitalOut(brain.three_wire_port.a)
 # chain_button = Bumper(brain.three_wire_port.b)
+drivetrain = DriveTrain(
+    lm=left_group,
+    rm=right_group,
+    wheelTravel=4 * math.pi,
+    trackWidth=300,
+    wheelBase=300,
+    units=INCHES,
+    externalGearRatio=1
+)
 
 velocity = 0
 accel_stick = 0
@@ -27,12 +38,10 @@ turn_stick = 0
 target_velocity = 0
 turning_velocity = 0
 
-DONUT_ELEVATOR_FORWARD_VELOCITY = 50
-DONUT_ELEVATOR_REVERSE_VELOCITY = 30
 #endregion
 
 def init():
-    global controller, left_group, right_group, stake_piston
+    global controller, left_group, right_group, stake_piston, donut_elevator
 
     left_group.set_stopping(COAST)
     right_group.set_stopping(COAST)
@@ -41,10 +50,18 @@ def init():
     controller.buttonR2.pressed(stake_piston.set, (True,))
     controller.buttonR2.released(stake_piston.set, (False,))
 
-    controller.buttonA.pressed(donut_elevator.spin, (FORWARD, DONUT_ELEVATOR_FORWARD_VELOCITY, PERCENT))
-    controller.buttonB.pressed(donut_elevator.spin, (FORWARD, 0, PERCENT))
-    controller.buttonX.pressed(donut_elevator.spin, (REVERSE, DONUT_ELEVATOR_REVERSE_VELOCITY, PERCENT))
+    controller.buttonA.pressed(donut_elevator.spin, (FORWARD, 50, PERCENT))
+    controller.buttonA.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
+    controller.buttonB.pressed(donut_elevator.spin, (REVERSE, 50, PERCENT))
+    controller.buttonB.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
 
+
+def auton():
+    global drivetrain
+
+    drivetrain.drive_for(FORWARD, 1000, MM, 63, PERCENT, True)
+    drivetrain.turn_for(LEFT, 90, DEGREES, 63, PERCENT, True)
+    
 
 def loop():
     global velocity, accel_stick, turn_stick, target_velocity, turn_velocity
@@ -72,5 +89,9 @@ def loop():
 
 if __name__ == "__main__":
     init()
-    while True:
-        loop()  
+    if AUTON_TESTING:
+        while True:
+            loop()
+    else:
+        while True:
+            auton()

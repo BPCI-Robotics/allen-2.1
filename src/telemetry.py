@@ -15,8 +15,10 @@ class RoboData:
         self.rot = rot
         self.left_group, self.right_group = motors
 
-        self.left_angle = 0.0
-        self.right_angle = 0.0
+        self.left_position = 0.0
+        self.right_position = 0.0
+
+        self.angle = 0.0
 
         self.wheelbase = wheelbase_width
 
@@ -25,20 +27,28 @@ class RoboData:
     def telemetry_loop(self):
         start_time = time.perf_counter()
 
-        left_angle_new = self.left_group.position(DEGREES)
-        right_angle_new = self.right_group.position(DEGREES)
+        # Get the new positions of the motors (say, 400 degrees)
+        left_position_new = self.left_group.position(DEGREES)
+        right_position_new = self.right_group.position(DEGREES)
 
-        delta_left_angle = left_angle_new - self.left_angle
-        delta_right_angle = right_angle_new - self.right_angle
+        # Get the change in motor position (say it went from 380 to 400 degrees, so 20 degrees)
+        delta_left_position = left_position_new - self.left_position
+        delta_right_position = right_position_new - self.right_position
 
-        delta_left_distance = convert(delta_left_angle, "deg", "rad") * WHEEL_RADIUS
-        delta_right_distance = convert(delta_right_angle, "deg", "rad") * WHEEL_RADIUS
+        # Get the change in distance for each side of the robot (for 20 degrees on 4" that is 1.77 cm)
+        delta_left_distance = convert(delta_left_position, "deg", "rad") * WHEEL_RADIUS
+        delta_right_distance = convert(delta_right_position, "deg", "rad") * WHEEL_RADIUS
 
+        # The average of the two is how far it went forward in total (as a vector)
         delta_forward_distance = (delta_left_distance + delta_right_distance) / 2
         
+        # The difference between the two over the width of the wheelbase is how much it turned.
         delta_angle = (delta_right_distance - delta_left_distance) / self.wheelbase
 
-        
+        # Update data
+        self.angle += delta_angle
+        self.x += delta_forward_distance * math.cos(self.angle)
+        self.y += delta_forward_distance * math.sin(self.angle)
 
         end_time = time.perf_counter()
         time_spent = end_time - start_time
