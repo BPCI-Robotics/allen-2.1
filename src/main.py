@@ -3,18 +3,33 @@ import math
 
 # Flags
 AUTON_TESTING = False
+IS_ALLEN = True
+IS_BARRON = False
 
-REVERSED = True
-GEAR_CARTRIDGE = GearSetting.RATIO_18_1
+
+# TODO: Measure drivetrain parameters!
+if IS_ALLEN:
+    REVERSED = True
+    GEAR_CARTRIDGE = GearSetting.RATIO_18_1
+
+    # Drivetrain settings (mm)
+    WHEEL_DIAMETER = 4
+    TRACK_WIDTH = 300
+    WHEEL_BASE = 300
+    GEAR_RATIO = 48 / 36
+
+if IS_BARRON:
+    REVERSED = True
+    GEAR_CARTRIDGE = GearSetting.RATIO_18_1
+
+    # Drivetrain settings (mm)
+    WHEEL_DIAMETER = 4
+    TRACK_WIDTH = 300
+    WHEEL_BASE = 300
+    GEAR_RATIO = 48 / 36
 
 DONUT_ELEVATOR_FORWARD_SPEED = 80
 DONUT_ELEVATOR_REVERSE_SPEED = 40
-
-# Drivetrain settings (mm)
-WHEEL_DIAMETER = 4
-TRACK_WIDTH = 300
-WHEEL_BASE = 300
-GEAR_RATIO = 48 / 36
 
 #region Control math functions
 def logistic(x: float) -> float:
