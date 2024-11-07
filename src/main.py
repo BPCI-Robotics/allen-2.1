@@ -3,33 +3,38 @@ import math
 
 # Flags
 AUTON_TESTING = False
-IS_ALLEN = True
-IS_BARRON = False
 
-
-# TODO: Measure drivetrain parameters!
-if IS_ALLEN:
-    REVERSED = True
-    GEAR_CARTRIDGE = GearSetting.RATIO_18_1
-
-    # Drivetrain settings (mm)
-    WHEEL_DIAMETER = 4
-    TRACK_WIDTH = 300
-    WHEEL_BASE = 300
-    GEAR_RATIO = 48 / 36
-
-if IS_BARRON:
-    REVERSED = True
-    GEAR_CARTRIDGE = GearSetting.RATIO_18_1
-
-    # Drivetrain settings (mm)
-    WHEEL_DIAMETER = 4
-    TRACK_WIDTH = 300
-    WHEEL_BASE = 300
-    GEAR_RATIO = 48 / 36
+NAME = "Allen"
+GREETING = [
+    "Autonomous on." if AUTON_TESTING else "Driver control on.",
+    "[REQ] Requesting permission to goon.",
+    "[RES] Permission granted.",
+]
 
 DONUT_ELEVATOR_FORWARD_SPEED = 80
 DONUT_ELEVATOR_REVERSE_SPEED = 40
+
+# TODO: Measure drivetrain parameters!
+
+if NAME.lower() == "ALLEN":
+    REVERSED = True
+    GEAR_CARTRIDGE = GearSetting.RATIO_18_1
+
+    # Drivetrain settings (mm)
+    WHEEL_DIAMETER = 4
+    TRACK_WIDTH = 300
+    WHEEL_BASE = 300
+    GEAR_RATIO = 48 / 36
+
+if NAME.upper() == "BARRON":
+    REVERSED = True
+    GEAR_CARTRIDGE = GearSetting.RATIO_18_1
+
+    # Drivetrain settings (mm)
+    WHEEL_DIAMETER = 4
+    TRACK_WIDTH = 300
+    WHEEL_BASE = 300
+    GEAR_RATIO = 48 / 36
 
 #region Control math functions
 def logistic(x: float) -> float:
@@ -91,9 +96,6 @@ right_group = MotorGroup(
                 Motor(Ports.PORT4, GEAR_CARTRIDGE, not REVERSED)
             )
 
-donut_elevator = Motor(Ports.PORT10, GEAR_CARTRIDGE, False)
-stake_piston = DigitalOut(brain.three_wire_port.a)
-# chain_button = Bumper(brain.three_wire_port.b)
 drivetrain = DriveTrain(
     lm=left_group,
     rm=right_group,
@@ -103,6 +105,9 @@ drivetrain = DriveTrain(
     units=INCHES,
     externalGearRatio=GEAR_RATIO
 )
+
+donut_elevator = Motor(Ports.PORT10, GEAR_CARTRIDGE, False)
+stake_piston = DigitalOut(brain.three_wire_port.a)
 
 velocity = 0
 accel_stick = 0
@@ -127,6 +132,10 @@ def init():
     controller.buttonA.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
     controller.buttonB.pressed(donut_elevator.spin, (REVERSE, DONUT_ELEVATOR_REVERSE_SPEED, PERCENT))
     controller.buttonB.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
+
+    brain.screen.clear_screen()
+    brain.screen.set_cursor(1, 1)
+    brain.screen.print(*GREETING, sep="\n")
 
 
 def auton():
