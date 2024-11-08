@@ -1,6 +1,7 @@
 from vex import *
 import math
 
+#region Config
 # Flags
 AUTON_TESTING = False
 
@@ -16,9 +17,10 @@ DONUT_ELEVATOR_REVERSE_SPEED = 40
 
 # TODO: Measure drivetrain parameters!
 
-if NAME.lower() == "ALLEN":
+if NAME.upper() == "ALLEN":
     REVERSED = True
     GEAR_CARTRIDGE = GearSetting.RATIO_18_1
+    VEL_PERCENT = 100
 
     # Drivetrain settings (mm)
     WHEEL_DIAMETER = 4
@@ -26,15 +28,20 @@ if NAME.lower() == "ALLEN":
     WHEEL_BASE = 300
     GEAR_RATIO = 48 / 36
 
-if NAME.upper() == "BARRON":
+elif NAME.upper() == "BARRON":
     REVERSED = True
     GEAR_CARTRIDGE = GearSetting.RATIO_18_1
+    VEL_PERCENT = 50
 
     # Drivetrain settings (mm)
     WHEEL_DIAMETER = 4
     TRACK_WIDTH = 300
     WHEEL_BASE = 300
     GEAR_RATIO = 48 / 36
+
+else:
+    raise NameError("No configuration specified for " + NAME.upper() + ".")
+#endregion Config
 
 #region Control math functions
 def logistic(x: float) -> float:
@@ -82,7 +89,7 @@ def limit(x: float) -> float:
     return max(min(x, 100), -100)
 #endregion Control math functions
 
-#region Set up code
+#region Declare robot parts
 brain = Brain()
 controller = Controller(PRIMARY)
 
@@ -102,7 +109,7 @@ drivetrain = DriveTrain(
     wheelTravel=WHEEL_DIAMETER * math.pi,
     trackWidth=TRACK_WIDTH,
     wheelBase=WHEEL_BASE,
-    units=INCHES,
+    units=MM,
     externalGearRatio=GEAR_RATIO
 )
 
@@ -172,8 +179,8 @@ def loop():
     controller.screen.set_cursor(1, 1)
     controller.screen.print("Turning", turn_velocity)
 
-    left_velocity = limit(target_velocity + turn_velocity/1.5) / 2
-    right_velocity = limit(target_velocity - turn_velocity/1.5) / 2
+    left_velocity = limit(target_velocity + turn_velocity/1.5) * VEL_PERCENT / 100
+    right_velocity = limit(target_velocity - turn_velocity/1.5) * VEL_PERCENT / 100
 
     left_group.spin(FORWARD, left_velocity, PERCENT)
     right_group.spin(FORWARD, right_velocity, PERCENT)
