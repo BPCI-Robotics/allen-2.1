@@ -4,43 +4,40 @@ import math
 #region Config
 # Flags
 AUTON_TESTING = False
-
 NAME = "Allen"
-GREETING = [
-    "Autonomous on." if AUTON_TESTING else "Driver control on.",
-    "[REQ] Requesting permission to goon.",
-    "[RES] Permission granted.",
-]
 
-DONUT_ELEVATOR_FORWARD_SPEED = 80
-DONUT_ELEVATOR_REVERSE_SPEED = 40
+DONUT_ELEVATOR_FORWARD_SPEED = 100
+DONUT_ELEVATOR_REVERSE_SPEED = 60
 
 # TODO: Measure drivetrain parameters!
+NAME = NAME.upper()
 
-if NAME.upper() == "ALLEN":
+if NAME == "ALLEN":
     REVERSED = True
     GEAR_CARTRIDGE = GearSetting.RATIO_18_1
     VEL_PERCENT = 100
 
     # Drivetrain settings (mm)
-    WHEEL_DIAMETER = 4
-    TRACK_WIDTH = 300
-    WHEEL_BASE = 300
+    WHEEL_DIAMETER = 101.6
+    TRACK_WIDTH = 230
+    WHEEL_BASE = 340
     GEAR_RATIO = 48 / 36
 
-elif NAME.upper() == "BARRON":
+elif NAME == "BARRON":
     REVERSED = True
     GEAR_CARTRIDGE = GearSetting.RATIO_18_1
-    VEL_PERCENT = 50
+
+    # Manual drive parameters
+    VEL_PERCENT = 75
 
     # Drivetrain settings (mm)
-    WHEEL_DIAMETER = 4
-    TRACK_WIDTH = 300
-    WHEEL_BASE = 300
-    GEAR_RATIO = 48 / 36
+    WHEEL_DIAMETER = 101.6
+    TRACK_WIDTH = 381
+    WHEEL_BASE = 381
+    GEAR_RATIO = 60 / 48
 
 else:
-    raise NameError("No configuration specified for " + NAME.upper() + ".")
+    raise NameError("No configuration specified for " + NAME + ".")
 #endregion Config
 
 #region Control math functions
@@ -113,43 +110,93 @@ drivetrain = DriveTrain(
     externalGearRatio=GEAR_RATIO
 )
 
-donut_elevator = Motor(Ports.PORT10, GEAR_CARTRIDGE, False)
-stake_piston = DigitalOut(brain.three_wire_port.a)
+if NAME == "ALLEN":
+    donut_elevator = Motor(Ports.PORT10, GEAR_CARTRIDGE, True)
+    stake_piston = DigitalOut(brain.three_wire_port.a)
+
+if NAME == "BARRON":
+    claw_lift = Motor(Ports.PORT9, GearSetting.RATIO_18_1)
+    claw_claw = Motor(Ports.PORT10, GearSetting.RATIO_36_1)
 
 velocity = 0
 accel_stick = 0
 turn_stick = 0
 target_velocity = 0
 turning_velocity = 0
+running = False
 
 #endregion
 
 #region Main routines
+
+def kill_yourself():
+    global NAME, running
+    drivetrain.set_stopping(BRAKE)
+    left_group.set_stopping(BRAKE)
+    right_group.set_stopping(BRAKE)
+
+    if NAME == "ALLEN":
+        donut_elevator.set_velocity(0, PERCENT)
+        drivetrain.set_drive_velocity(0, PERCENT)
+        left_group.set_velocity(0, PERCENT)
+        right_group.set_velocity(0, PERCENT)
+    
+    if NAME == "BARRON":
+        claw_lift.set_stopping(BRAKE)
+        claw_claw.set_stopping(BRAKE)
+        claw_lift.stop()
+        claw_claw.stop()
+
+    stake_piston.set(True)
+    drivetrain.stop()
+
+    running = False
+
+
 def init():
-    global controller, left_group, right_group, stake_piston, donut_elevator
+    global controller, left_group, right_group, stake_piston, donut_elevator, GREETING, NAME
 
     left_group.set_stopping(COAST)
     right_group.set_stopping(COAST)
 
     # Init callback
-    controller.buttonR2.pressed(stake_piston.set, (True,))
-    controller.buttonR2.released(stake_piston.set, (False,))
+    if NAME == "ALLEN":
+        controller.buttonR2.pressed(stake_piston.set, (True,))
+        controller.buttonR2.released(stake_piston.set, (False,))
 
-    controller.buttonA.pressed(donut_elevator.spin, (FORWARD, DONUT_ELEVATOR_FORWARD_SPEED, PERCENT))
-    controller.buttonA.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
-    controller.buttonB.pressed(donut_elevator.spin, (REVERSE, DONUT_ELEVATOR_REVERSE_SPEED, PERCENT))
-    controller.buttonB.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
+        controller.buttonL1.pressed(donut_elevator.spin, (FORWARD, DONUT_ELEVATOR_FORWARD_SPEED, PERCENT))
+        controller.buttonL1.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
+        controller.buttonL2.pressed(donut_elevator.spin, (REVERSE, DONUT_ELEVATOR_REVERSE_SPEED, PERCENT))
+        controller.buttonL2.released(donut_elevator.spin, (FORWARD, 0, PERCENT)) 
 
-    brain.screen.clear_screen()
-    brain.screen.set_cursor(1, 1)
-    brain.screen.print(*GREETING, sep="\n")
+    if NAME == "BARRON":
+        controller.buttonL1.pressed(claw_lift.spin, (FORWARD, 100, PERCENT))
+        controller.buttonL1.released(claw_lift.spin, (FORWARD, 0, PERCENT))
+        controller.buttonL2.pressed(claw_lift.spin, (REVERSE, 100, PERCENT))
+        controller.buttonL2.pressed(claw_lift.spin, (FORWARD, 0, PERCENT))
+
+        controller.buttonR1.pressed(claw_claw.spin, (FORWARD, 100, PERCENT))
+        controller.buttonR1.released(claw_claw.spin, (0, PERCENT))
+        controller.buttonR2.pressed(claw_claw.spin, (REVERSE, 100, PERCENT))
+        controller.buttonR2.pressed(claw_claw.spin, (FORWARD, 0, PERCENT))
+
+        controller.screen.set_cursor(1, 1)
+        controller.screen.print("Set thingies")
+    
+    controller.buttonX.pressed(kill_yourself)
 
 
 def auton():
-    global drivetrain
+    global drivetrain, stake_piston
 
-    drivetrain.drive_for(FORWARD, 1000, MM, 63, PERCENT, True)
-    drivetrain.turn_for(LEFT, 90, DEGREES, 63, PERCENT, True)
+    drivetrain.set_stopping(BRAKE)
+    stake_piston.set(False)
+    donut_elevator.set_velocity(80, PERCENT)
+    donut_elevator.spin(FORWARD)
+    drivetrain.drive_for(FORWARD, 250, INCHES)
+    donut_elevator.set_velocity(0, PERCENT)
+    exit()
+    # wait(5, SECONDS)
     
 controller_clear_counter = 0
 
@@ -160,8 +207,10 @@ def loop():
 
     # Update state
     velocity = (left_group.velocity(PERCENT) + right_group.velocity(PERCENT)) / 2
-    accel_stick = controller.axis2.position()
+
+    accel_stick = controller.axis3.position()
     turn_stick = controller.axis1.position()
+        
     target_velocity = get_velocity(accel_stick, velocity)
     turn_velocity = get_velocity(turn_stick, 100)
 
@@ -176,26 +225,22 @@ def loop():
         
     # Update controller screen
 
-    controller.screen.set_cursor(1, 1)
-    controller.screen.print("Turning", turn_velocity)
-
-    left_velocity = limit(target_velocity + turn_velocity/1.5) * VEL_PERCENT / 100
-    right_velocity = limit(target_velocity - turn_velocity/1.5) * VEL_PERCENT / 100
+    left_velocity = limit(target_velocity + turn_velocity/2) * VEL_PERCENT / 100
+    right_velocity = limit(target_velocity - turn_velocity/2) * VEL_PERCENT / 100
 
     left_group.spin(FORWARD, left_velocity, PERCENT)
     right_group.spin(FORWARD, right_velocity, PERCENT)
+    
 
-    controller.screen.set_cursor(2, 1)
-    controller.screen.print("Left_vel", left_velocity)
-    controller.screen.set_cursor(3, 1)
-    controller.screen.print("Righ_vel", right_velocity)
 #endregion Main routines
 
 if __name__ == "__main__":
+    global running
+
     init()
     if AUTON_TESTING:
-        while True:
+        while running:
             auton()
     else:
-        while True:
+        while running:
             loop()
