@@ -235,7 +235,6 @@ def loop():
 #endregion Main routines
 
 if __name__ == "__main__":
-    global running
 
     init()
     if AUTON_TESTING:
