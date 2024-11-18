@@ -1,46 +1,8 @@
 from vex import *
 import math
 
-#region Config
-# Flags
-AUTON_TESTING = False
-NAME = "Allen"
-
-DONUT_ELEVATOR_FORWARD_SPEED = 100
-DONUT_ELEVATOR_REVERSE_SPEED = 60
-
-# TODO: Measure drivetrain parameters!
-NAME = NAME.upper()
-
-if NAME == "ALLEN":
-    REVERSED = True
-    GEAR_CARTRIDGE = GearSetting.RATIO_18_1
-    VEL_PERCENT = 100
-
-    # Drivetrain settings (mm)
-    WHEEL_DIAMETER = 101.6
-    TRACK_WIDTH = 230
-    WHEEL_BASE = 340
-    GEAR_RATIO = 48 / 36
-
-elif NAME == "BARRON":
-    REVERSED = True
-    GEAR_CARTRIDGE = GearSetting.RATIO_18_1
-
-    # Manual drive parameters
-    VEL_PERCENT = 75
-
-    # Drivetrain settings (mm)
-    WHEEL_DIAMETER = 101.6
-    TRACK_WIDTH = 381
-    WHEEL_BASE = 381
-    GEAR_RATIO = 60 / 48
-
-else:
-    raise NameError("No configuration specified for " + NAME + ".")
-#endregion Config
-
 #region Control math functions
+
 def logistic(x: float) -> float:
     # See https://www.desmos.com/calculator/ckpeuxjv0c
 
@@ -84,7 +46,44 @@ def get_velocity(val: float, current_speed=100.0) -> float:
 
 def limit(x: float) -> float:
     return max(min(x, 100), -100)
-#endregion Control math functions
+#endregion
+
+# Flags
+AUTON_TESTING = False
+NAME = "Allen"
+
+DONUT_ELEVATOR_FORWARD_SPEED = 100
+DONUT_ELEVATOR_REVERSE_SPEED = 80
+
+# TODO: Measure drivetrain parameters!
+NAME = NAME.upper()
+
+if NAME == "ALLEN":
+    REVERSED = True
+    GEAR_CARTRIDGE = GearSetting.RATIO_18_1
+    VEL_PERCENT = 100
+
+    # Drivetrain settings (mm)
+    WHEEL_DIAMETER = 101.6
+    TRACK_WIDTH = 230
+    WHEEL_BASE = 340
+    GEAR_RATIO = 60 / 48
+
+elif NAME == "BARRON":
+    REVERSED = True
+    GEAR_CARTRIDGE = GearSetting.RATIO_18_1
+
+    # Manual drive parameters
+    VEL_PERCENT = 75
+
+    # Drivetrain settings (mm)
+    WHEEL_DIAMETER = 101.6
+    TRACK_WIDTH = 381
+    WHEEL_BASE = 381
+    GEAR_RATIO = 60 / 48
+
+else:
+    raise NameError("No configuration specified for " + NAME + ".")
 
 #region Declare robot parts
 brain = Brain()
@@ -123,7 +122,7 @@ accel_stick = 0
 turn_stick = 0
 target_velocity = 0
 turning_velocity = 0
-running = False
+running = True
 
 #endregion
 
@@ -154,7 +153,7 @@ def kill_yourself():
 
 
 def init():
-    global controller, left_group, right_group, stake_piston, donut_elevator, GREETING, NAME
+    global controller, left_group, right_group, stake_piston, donut_elevator, NAME
 
     left_group.set_stopping(COAST)
     right_group.set_stopping(COAST)
@@ -179,9 +178,6 @@ def init():
         controller.buttonR1.released(claw_claw.spin, (0, PERCENT))
         controller.buttonR2.pressed(claw_claw.spin, (REVERSE, 100, PERCENT))
         controller.buttonR2.pressed(claw_claw.spin, (FORWARD, 0, PERCENT))
-
-        controller.screen.set_cursor(1, 1)
-        controller.screen.print("Set thingies")
     
     controller.buttonX.pressed(kill_yourself)
 
@@ -213,10 +209,6 @@ def loop():
         
     target_velocity = get_velocity(accel_stick, velocity)
     turn_velocity = get_velocity(turn_stick, 100)
-
-    # Rumble controller when full power being used
-    if 51 <= abs(velocity) <= 64:
-        controller.rumble("--")
     
     global controller_clear_counter
     controller_clear_counter += 1
