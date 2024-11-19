@@ -177,7 +177,7 @@ def init():
         controller.buttonL2.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
 
         # Parthib requested that this be added.
-        controller.buttonX.pressed(toggle_donut_elevator)
+        controller.buttonY.pressed(toggle_donut_elevator)
 
     if NAME == "BARRON":
         controller.buttonL1.pressed(claw_lift.spin, (FORWARD, 100, PERCENT))
@@ -247,9 +247,19 @@ def loop():
 if __name__ == "__main__":
 
     init()
+    """
     if AUTON_TESTING:
         while running:
             auton()
     else:
         while running:
             loop()
+    """
+
+    comp = Competition(lambda: None, lambda: None)
+    
+    while comp.is_autonomous() and running:
+        auton()
+    
+    while comp.is_driver_control() and running:
+        loop()
