@@ -1,6 +1,9 @@
 from vex import *
 import math
 
+RETRACT = True
+EXTEND = False
+
 #region Control math functions
 
 def logistic(x: float) -> float:
@@ -55,7 +58,6 @@ NAME = "Allen"
 DONUT_ELEVATOR_FORWARD_SPEED = 100
 DONUT_ELEVATOR_REVERSE_SPEED = 80
 
-# TODO: Measure drivetrain parameters!
 NAME = NAME.upper()
 
 if NAME == "ALLEN":
@@ -70,6 +72,8 @@ if NAME == "ALLEN":
     GEAR_RATIO = 60 / 48
 
 elif NAME == "BARRON":
+    # TODO: Measure drivetrain parameters!
+
     REVERSED = True
     GEAR_CARTRIDGE = GearSetting.RATIO_18_1
 
@@ -128,7 +132,7 @@ running = True
 
 #region Main routines
 
-def kill_yourself():
+def stop_everything():
     global NAME, running
     drivetrain.set_stopping(BRAKE)
     left_group.set_stopping(BRAKE)
@@ -151,6 +155,14 @@ def kill_yourself():
 
     running = False
 
+donut_elevator_is_active = False
+def toggle_donut_elevator():
+    global donut_elevator_is_active
+
+    donut_elevator_is_active = not donut_elevator_is_active
+
+    donut_elevator.spin(FORWARD, DONUT_ELEVATOR_FORWARD_SPEED if donut_elevator_is_active else 0, PERCENT)
+
 
 def init():
     global controller, left_group, right_group, stake_piston, donut_elevator, NAME
@@ -160,13 +172,16 @@ def init():
 
     # Init callback
     if NAME == "ALLEN":
-        controller.buttonR2.pressed(stake_piston.set, (True,))
-        controller.buttonR2.released(stake_piston.set, (False,))
+        controller.buttonR2.pressed(stake_piston.set, (RETRACT,))
+        controller.buttonR2.released(stake_piston.set, (EXTEND,))
 
         controller.buttonL1.pressed(donut_elevator.spin, (FORWARD, DONUT_ELEVATOR_FORWARD_SPEED, PERCENT))
         controller.buttonL1.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
         controller.buttonL2.pressed(donut_elevator.spin, (REVERSE, DONUT_ELEVATOR_REVERSE_SPEED, PERCENT))
-        controller.buttonL2.released(donut_elevator.spin, (FORWARD, 0, PERCENT)) 
+        controller.buttonL2.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
+
+        # Parthib requested that this be added.
+        controller.buttonX.pressed(toggle_donut_elevator)
 
     if NAME == "BARRON":
         controller.buttonL1.pressed(claw_lift.spin, (FORWARD, 100, PERCENT))
@@ -179,7 +194,7 @@ def init():
         controller.buttonR2.pressed(claw_claw.spin, (REVERSE, 100, PERCENT))
         controller.buttonR2.pressed(claw_claw.spin, (FORWARD, 0, PERCENT))
     
-    controller.buttonX.pressed(kill_yourself)
+    controller.buttonX.pressed(stop_everything)
 
 
 def auton():
@@ -191,7 +206,8 @@ def auton():
     donut_elevator.spin(FORWARD)
     drivetrain.drive_for(FORWARD, 250, INCHES)
     donut_elevator.set_velocity(0, PERCENT)
-    exit()
+
+    stop_everything()
     # wait(5, SECONDS)
     
 controller_clear_counter = 0
