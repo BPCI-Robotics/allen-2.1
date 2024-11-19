@@ -1,16 +1,16 @@
 {
 	"extension": {
-		"version": "0.6.0",
+		"version": "0.6.1",
 		"json": 2
 	},
 	"project": {
 		"name": "allen-2-1",
 		"description": "",
-		"creationDate": "10/10/2024, 11:37:32",
+		"creationDate": "Tue, 19 Nov 2024 16:03:09 GMT",
 		"platform": "V5",
 		"language": "python",
 		"slot": 1,
-		"sdkVersion": "V5_1_0_1_19",
+		"sdkVersion": "V5_1_0_1_25",
 		"python": {
 			"main": "src/main.py"
 		}
