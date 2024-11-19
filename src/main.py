@@ -1,9 +1,6 @@
 from vex import *
 import math
 
-RETRACT = True
-EXTEND = False
-
 #region Control math functions
 
 def logistic(x: float) -> float:
@@ -121,11 +118,7 @@ if NAME == "BARRON":
     claw_lift = Motor(Ports.PORT9, GearSetting.RATIO_18_1)
     claw_claw = Motor(Ports.PORT10, GearSetting.RATIO_36_1)
 
-velocity = 0
-accel_stick = 0
-turn_stick = 0
-target_velocity = 0
-turning_velocity = 0
+
 running = True
 
 #endregion
@@ -166,6 +159,9 @@ def toggle_donut_elevator():
 
 def init():
     global controller, left_group, right_group, stake_piston, donut_elevator, NAME
+    
+    RETRACT = True
+    EXTEND = False
 
     left_group.set_stopping(COAST)
     right_group.set_stopping(COAST)
@@ -211,6 +207,12 @@ def auton():
     # wait(5, SECONDS)
     
 controller_clear_counter = 0
+
+velocity = 0
+accel_stick = 0
+turn_stick = 0
+target_velocity = 0
+turning_velocity = 0
 
 def loop():
 
