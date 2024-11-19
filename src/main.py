@@ -220,26 +220,27 @@ def loop():
     global controller, left_group, right_group
 
     # Update state
-    velocity = (left_group.velocity(PERCENT) + right_group.velocity(PERCENT)) / 2
+    while running:
+        velocity = (left_group.velocity(PERCENT) + right_group.velocity(PERCENT)) / 2
 
-    accel_stick = controller.axis3.position()
-    turn_stick = controller.axis1.position()
+        accel_stick = controller.axis3.position()
+        turn_stick = controller.axis1.position()
+            
+        target_velocity = get_velocity(accel_stick, velocity)
+        turn_velocity = get_velocity(turn_stick, 100)
         
-    target_velocity = get_velocity(accel_stick, velocity)
-    turn_velocity = get_velocity(turn_stick, 100)
-    
-    global controller_clear_counter
-    controller_clear_counter += 1
-    if (controller_clear_counter == 10):
-        controller.screen.clear_screen()
-        
-    # Update controller screen
+        global controller_clear_counter
+        controller_clear_counter += 1
+        if (controller_clear_counter == 10):
+            controller.screen.clear_screen()
+            
+        # Update controller screen
 
-    left_velocity = limit(target_velocity + turn_velocity/2) * VEL_PERCENT / 100
-    right_velocity = limit(target_velocity - turn_velocity/2) * VEL_PERCENT / 100
+        left_velocity = limit(target_velocity + turn_velocity/2) * VEL_PERCENT / 100
+        right_velocity = limit(target_velocity - turn_velocity/2) * VEL_PERCENT / 100
 
-    left_group.spin(FORWARD, left_velocity, PERCENT)
-    right_group.spin(FORWARD, right_velocity, PERCENT)
+        left_group.spin(FORWARD, left_velocity, PERCENT)
+        right_group.spin(FORWARD, right_velocity, PERCENT)
     
 
 #endregion Main routines
@@ -256,10 +257,4 @@ if __name__ == "__main__":
             loop()
     """
 
-    comp = Competition(lambda: None, lambda: None)
-    
-    while comp.is_autonomous() and running:
-        auton()
-    
-    while comp.is_driver_control() and running:
-        loop()
+    comp = Competition(loop, auton)
