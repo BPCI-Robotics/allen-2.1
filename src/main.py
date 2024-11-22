@@ -100,6 +100,16 @@ def grab_stake():
 
 def release_stake():
     stake_piston.set(True)
+
+drivetrain_direction = 1
+def set_direction(dir):
+    global drivetrain_direction
+
+    if dir == FORWARD:
+        drivetrain_direction = 1
+    
+    if dir == REVERSE:
+        drivetrain_direction = -1
 #endregion
 
 
@@ -116,6 +126,9 @@ def init():
     controller.buttonL1.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
     controller.buttonL2.pressed(donut_elevator.spin, (REVERSE, 60, PERCENT))
     controller.buttonL2.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
+
+    controller.buttonUp.pressed(set_direction, (FORWARD,))
+    controller.buttonDown.pressed(set_direction, (REVERSE,))
 
     if DRIVER == "PARTHIB":
         controller.buttonY.pressed(toggle_donut_elevator)
@@ -159,8 +172,8 @@ def loop():
         target_velocity = get_velocity(accel_stick, velocity)
         turn_velocity = get_velocity(turn_stick, 100)
 
-        left_velocity = limit(target_velocity + turn_velocity/2) * (VEL_PERCENT / 100)
-        right_velocity = limit(target_velocity - turn_velocity/2) * (VEL_PERCENT / 100)
+        left_velocity = limit(drivetrain_direction * target_velocity + turn_velocity/2) * (VEL_PERCENT / 100)
+        right_velocity = limit(drivetrain_direction * target_velocity - turn_velocity/2) * (VEL_PERCENT / 100)
 
         left_group.spin(FORWARD, left_velocity, PERCENT)
         right_group.spin(FORWARD, right_velocity, PERCENT)
