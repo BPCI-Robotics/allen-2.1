@@ -78,12 +78,6 @@ drivetrain = DriveTrain(
 donut_elevator = Motor(Ports.PORT10, GearSetting.RATIO_18_1, True)
 stake_piston = DigitalOut(brain.three_wire_port.a)
 
-velocity = 0
-accel_stick = 0
-turn_stick = 0
-target_velocity = 0
-turning_velocity = 0
-
 #endregion
 
 #region Main routines
@@ -135,11 +129,8 @@ def auton():
     
 controller_clear_counter = 0
 
-def loop():
 
-    global velocity, accel_stick, turn_stick, target_velocity, turn_velocity
-    global controller, left_group, right_group
-    global sped_limit
+def loop():
 
     # Update state
     velocity = (left_group.velocity(PERCENT) + right_group.velocity(PERCENT)) / 2
