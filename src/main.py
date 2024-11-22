@@ -3,19 +3,7 @@ import math
 
 
 DRIVER = "Parthib".upper()
-
-DONUT_ELEVATOR_FORWARD_SPEED = 100
-DONUT_ELEVATOR_REVERSE_SPEED = 60
-
-REVERSED = True
-GEAR_CARTRIDGE = GearSetting.RATIO_18_1
 VEL_PERCENT = 80
-
-# Drivetrain settings (mm)
-WHEEL_DIAMETER = 101.6
-TRACK_WIDTH = 230
-WHEEL_BASE = 340
-GEAR_RATIO = 48 / 36
 
 #region Control math functions
 def logistic(x: float) -> float:
@@ -68,26 +56,26 @@ brain = Brain()
 controller = Controller(PRIMARY)
 
 left_group = MotorGroup(
-                Motor(Ports.PORT1, GEAR_CARTRIDGE, REVERSED),
-                Motor(Ports.PORT2, GEAR_CARTRIDGE, REVERSED)
+                Motor(Ports.PORT1, GearSetting.RATIO_18_1, True),
+                Motor(Ports.PORT2, GearSetting.RATIO_18_1, True)
             )
 
 right_group = MotorGroup(
-                Motor(Ports.PORT3, GEAR_CARTRIDGE, not REVERSED), 
-                Motor(Ports.PORT4, GEAR_CARTRIDGE, not REVERSED)
+                Motor(Ports.PORT3, GearSetting.RATIO_18_1, False), 
+                Motor(Ports.PORT4, GearSetting.RATIO_18_1, False)
             )
 
 drivetrain = DriveTrain(
-    lm=left_group,
-    rm=right_group,
-    wheelTravel=WHEEL_DIAMETER * math.pi,
-    trackWidth=TRACK_WIDTH,
-    wheelBase=WHEEL_BASE,
-    units=MM,
-    externalGearRatio=GEAR_RATIO
+    lm = left_group,
+    rm = right_group,
+    wheelTravel = 101.6 * math.pi,
+    trackWidth = 230,
+    wheelBase = 340,
+    units = MM,
+    externalGearRatio = 48 / 36
 )
 
-donut_elevator = Motor(Ports.PORT10, GEAR_CARTRIDGE, True)
+donut_elevator = Motor(Ports.PORT10, GearSetting.RATIO_18_1, True)
 stake_piston = DigitalOut(brain.three_wire_port.a)
 
 velocity = 0
@@ -106,7 +94,7 @@ def toggle_donut_elevator():
 
     donut_elevator_is_active = not donut_elevator_is_active
 
-    donut_elevator.spin(FORWARD, DONUT_ELEVATOR_FORWARD_SPEED if donut_elevator_is_active else 0, PERCENT)
+    donut_elevator.spin(FORWARD, 100 * donut_elevator_is_active)
 
 def init():
     left_group.set_stopping(COAST)
@@ -116,9 +104,9 @@ def init():
     controller.buttonR2.pressed(stake_piston.set, (True,))
     controller.buttonR2.released(stake_piston.set, (False,))
 
-    controller.buttonL1.pressed(donut_elevator.spin, (FORWARD, DONUT_ELEVATOR_FORWARD_SPEED, PERCENT))
+    controller.buttonL1.pressed(donut_elevator.spin, (FORWARD, 60, PERCENT))
     controller.buttonL1.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
-    controller.buttonL2.pressed(donut_elevator.spin, (REVERSE, DONUT_ELEVATOR_REVERSE_SPEED, PERCENT))
+    controller.buttonL2.pressed(donut_elevator.spin, (REVERSE, 60, PERCENT))
     controller.buttonL2.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
 
     if DRIVER == "PARTHIB":
