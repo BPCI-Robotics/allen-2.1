@@ -1,12 +1,9 @@
-
 from vex import *
 import math
 
 
 DRIVER = "Parthib".upper()
-VEL_PERCENT = 100
-
-AUTON_DIRECTION = LEFT
+VEL_PERCENT = 80
 
 DRIVETRAIN_MOTOR_CARTRIDGE = GearSetting.RATIO_18_1
 GEAR_RATIO_MOTOR_TO_WHEEL = 48 / 36
@@ -94,7 +91,7 @@ def toggle_donut_elevator():
 
     donut_elevator_is_active = not donut_elevator_is_active
 
-    donut_elevator.spin(FORWARD, 100 * donut_elevator_is_active, PERCENT)
+    donut_elevator.spin(FORWARD, 100 * donut_elevator_is_active)
 
 
 def grab_stake():
@@ -103,6 +100,16 @@ def grab_stake():
 
 def release_stake():
     stake_piston.set(True)
+
+drivetrain_direction = 1
+def set_direction(dir):
+    global drivetrain_direction
+
+    if dir == FORWARD:
+        drivetrain_direction = 1
+    
+    if dir == REVERSE:
+        drivetrain_direction = -1
 #endregion
 
 
@@ -115,11 +122,16 @@ def init():
     controller.buttonR2.pressed(release_stake)
     controller.buttonR2.released(grab_stake)
 
-    controller.buttonL1.pressed(donut_elevator.spin, (FORWARD, 100, PERCENT))
+    controller.buttonL1.pressed(donut_elevator.spin, (FORWARD, 60, PERCENT))
     controller.buttonL1.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
-    controller.buttonL2.pressed(donut_elevator.spin, (REVERSE, 80, PERCENT))
+    controller.buttonL2.pressed(donut_elevator.spin, (REVERSE, 60, PERCENT))
     controller.buttonL2.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
 
+    controller.buttonUp.pressed(set_direction, (FORWARD,))
+    controller.buttonDown.pressed(set_direction, (REVERSE,))
+
+    controller.buttonLeft.pressed(set_direction, (REVERSE,))
+    controller.buttonRight.pressed(set_direction, (FORWARD,))
 
     if DRIVER == "PARTHIB":
         controller.buttonY.pressed(toggle_donut_elevator)
@@ -132,19 +144,13 @@ def auton():
 
     drivetrain.drive_for(REVERSE, 32, INCHES, 65, PERCENT)
     grab_stake()
-    drivetrain.drive_for(REVERSE, 2, INCHES, 40, PERCENT)
+    drivetrain.drive_for(REVERSE, 1.5, INCHES, 40, PERCENT)
 
     wait(0.5, SECONDS)
 
-    if AUTON_DIRECTION == LEFT:
-        drivetrain.turn_for(LEFT, 50, DEGREES)
-        drivetrain.drive_for(FORWARD, 2, INCHES) #Realign the stake after turning
-        donut_elevator.spin(FORWARD, 100, PERCENT)
-    
-    if AUTON_DIRECTION == RIGHT:
-        drivetrain.turn_for(RIGHT, 50, DEGREES)
-        drivetrain.drive_for(FORWARD, 2, INCHES) #Realign the stake after turning
-        donut_elevator.spin(FORWARD, 100, PERCENT)
+    # TODO: Adjust the code based on the starting position of the robot.
+    drivetrain.turn_for(RIGHT, 50, DEGREES)
+    donut_elevator.spin(FORWARD, 100, PERCENT)
 
     wait(1, SECONDS)
 
@@ -152,9 +158,7 @@ def auton():
     if donut_elevator.velocity(PERCENT) <= 2.0:
         donut_elevator.spin_for(REVERSE, 30, DEGREES, 100, PERCENT)
 
-    drivetrain.drive_for(FORWARD, 26, INCHES, 40, PERCENT)
-
-    wait(4, SECONDS)
+    wait(5, SECONDS)
 
     # This is redundant but it's better to be sure.
     drivetrain.stop()
@@ -162,7 +166,6 @@ def auton():
 
 
 def loop():
-    init()
     while True:
         velocity = (left_group.velocity(PERCENT) + right_group.velocity(PERCENT)) / 2
 
@@ -172,8 +175,8 @@ def loop():
         target_velocity = get_velocity(accel_stick, velocity)
         turn_velocity = get_velocity(turn_stick, 100)
 
-        left_velocity = limit(target_velocity + turn_velocity/2) * (VEL_PERCENT / 100)
-        right_velocity = limit(target_velocity - turn_velocity/2) * (VEL_PERCENT / 100)
+        left_velocity = limit(drivetrain_direction * target_velocity + turn_velocity/2) * (VEL_PERCENT / 100)
+        right_velocity = limit(drivetrain_direction * target_velocity - turn_velocity/2) * (VEL_PERCENT / 100)
 
         left_group.spin(FORWARD, left_velocity, PERCENT)
         right_group.spin(FORWARD, right_velocity, PERCENT)
