@@ -3,10 +3,7 @@ from vex import *
 import math
 
 
-DRIVER = "Parthib".upper()
-VEL_PERCENT = 100
-
-AUTON_DIRECTION = LEFT
+AUTON_STARTING_SIDE = LEFT
 
 DRIVETRAIN_MOTOR_CARTRIDGE = GearSetting.RATIO_18_1
 GEAR_RATIO_MOTOR_TO_WHEEL = 48 / 36
@@ -120,9 +117,7 @@ def init():
     controller.buttonL2.pressed(donut_elevator.spin, (REVERSE, 80, PERCENT))
     controller.buttonL2.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
 
-
-    if DRIVER == "PARTHIB":
-        controller.buttonY.pressed(toggle_donut_elevator)
+    controller.buttonY.pressed(toggle_donut_elevator)
 
 def auton():
     release_stake()
@@ -136,15 +131,9 @@ def auton():
 
     wait(0.5, SECONDS)
 
-    if AUTON_DIRECTION == LEFT:
-        drivetrain.turn_for(LEFT, 50, DEGREES)
-        drivetrain.drive_for(FORWARD, 2, INCHES) #Realign the stake after turning
-        donut_elevator.spin(FORWARD, 100, PERCENT)
-    
-    if AUTON_DIRECTION == RIGHT:
-        drivetrain.turn_for(RIGHT, 50, DEGREES)
-        drivetrain.drive_for(FORWARD, 2, INCHES) #Realign the stake after turning
-        donut_elevator.spin(FORWARD, 100, PERCENT)
+    drivetrain.turn_for(AUTON_STARTING_SIDE, 50, DEGREES)
+    drivetrain.drive_for(FORWARD, 2, INCHES) #Realign the stake after turning
+    donut_elevator.spin(FORWARD, 100, PERCENT)
 
     wait(1, SECONDS)
 
@@ -172,8 +161,8 @@ def loop():
         target_velocity = get_velocity(accel_stick, velocity)
         turn_velocity = get_velocity(turn_stick, 100)
 
-        left_velocity = limit(target_velocity + turn_velocity/2) * (VEL_PERCENT / 100)
-        right_velocity = limit(target_velocity - turn_velocity/2) * (VEL_PERCENT / 100)
+        left_velocity = limit(target_velocity + turn_velocity/2)
+        right_velocity = limit(target_velocity - turn_velocity/2)
 
         left_group.spin(FORWARD, left_velocity, PERCENT)
         right_group.spin(FORWARD, right_velocity, PERCENT)
