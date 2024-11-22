@@ -130,6 +130,9 @@ def init():
     controller.buttonUp.pressed(set_direction, (FORWARD,))
     controller.buttonDown.pressed(set_direction, (REVERSE,))
 
+    controller.buttonLeft.pressed(set_direction, (REVERSE,))
+    controller.buttonRight.pressed(set_direction, (FORWARD,))
+
     if DRIVER == "PARTHIB":
         controller.buttonY.pressed(toggle_donut_elevator)
 
