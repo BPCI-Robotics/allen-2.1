@@ -124,22 +124,7 @@ def init():
     if DRIVER == "PARTHIB":
         controller.buttonY.pressed(toggle_donut_elevator)
 
-    
-
-start_positions = ['top-left', 'top-right', 'bottom-left', 'bottom-right']
-
 def auton():
-    global drivetrain, stake_piston, claw_lift, start_positions
-
-    """drivetrain.set_stopping(BRAKE)
-    stake_piston.set(False)
-    donut_elevator.set_velocity(80, PERCENT)
-    donut_elevator.spin(FORWARD)
-    drivetrain.drive_for(FORWARD, 250, INCHES)
-    donut_elevator.set_velocity(0, PERCENT)
-    
-    vision_sensor1 = Vision(port=13)"""
-    
     stake_piston.set(True)
     wait(0.5, SECONDS)
     drivetrain.drive_for(REVERSE, 32, INCHES, 65, PERCENT)
@@ -159,7 +144,6 @@ def auton():
 
     drivetrain.stop()
     donut_elevator.stop()
-    # wait(5, SECONDS)
     
 controller_clear_counter = 0
 
@@ -181,17 +165,6 @@ def loop():
         
     target_velocity = get_velocity(accel_stick, velocity)
     turn_velocity = get_velocity(turn_stick, 100)
-
-    """# Rumble controller when full power being used
-    if 51 <= abs(velocity) <= 64:
-        controller.rumble("--")"""
-    
-    """global controller_clear_counter
-    controller_clear_counter += 1
-    if (controller_clear_counter == 10):
-        controller.screen.clear_screen()"""
-        
-    # Update controller screen
 
     left_velocity = limit(target_velocity + turn_velocity/2) * (VEL_PERCENT / 100)
     right_velocity = limit(target_velocity - turn_velocity/2) * (VEL_PERCENT / 100)
