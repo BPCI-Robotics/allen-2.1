@@ -51,6 +51,7 @@ def limit(x: float) -> float:
     return max(min(x, 100), -100)
 #endregion Control math functions
 
+
 #region Declare robot parts
 brain = Brain()
 controller = Controller(PRIMARY)
@@ -77,11 +78,10 @@ drivetrain = DriveTrain(
 
 donut_elevator = Motor(Ports.PORT10, GearSetting.RATIO_18_1, True)
 stake_piston = DigitalOut(brain.three_wire_port.a)
-
 #endregion
 
-#region Main routines
 
+#region Helper routines
 donut_elevator_is_active = False
 def toggle_donut_elevator():
     global donut_elevator_is_active
@@ -90,13 +90,24 @@ def toggle_donut_elevator():
 
     donut_elevator.spin(FORWARD, 100 * donut_elevator_is_active)
 
+
+def grab_stake():
+    stake_piston.set(False)
+
+
+def release_stake():
+    stake_piston.set(True)
+#endregion
+
+
+#region Main routines
 def init():
     left_group.set_stopping(COAST)
     right_group.set_stopping(COAST)
 
     # Init callback
-    controller.buttonR2.pressed(stake_piston.set, (True,))
-    controller.buttonR2.released(stake_piston.set, (False,))
+    controller.buttonR2.pressed(release_stake)
+    controller.buttonR2.released(grab_stake)
 
     controller.buttonL1.pressed(donut_elevator.spin, (FORWARD, 60, PERCENT))
     controller.buttonL1.released(donut_elevator.spin, (FORWARD, 0, PERCENT))
@@ -107,27 +118,32 @@ def init():
         controller.buttonY.pressed(toggle_donut_elevator)
 
 def auton():
-    stake_piston.set(True)
-    wait(0.5, SECONDS)
+    release_stake()
+
+    # Wait for the piston to finish retracting.
+    wait(0.3, SECONDS)
+
     drivetrain.drive_for(REVERSE, 32, INCHES, 65, PERCENT)
-    stake_piston.set(False)
+    grab_stake()
     drivetrain.drive_for(REVERSE, 1.5, INCHES, 40, PERCENT)
+
     wait(0.5, SECONDS)
-    #this depends on which starting position the robot is on
+
+    # TODO: Adjust the code based on the starting position of the robot.
     drivetrain.turn_for(RIGHT, 50, DEGREES)
     donut_elevator.spin(FORWARD, 100, PERCENT)
 
     wait(1, SECONDS)
 
-    if donut_elevator.velocity(RPM) <= 2:
+    # Unstuck the donut elevator if it is stuck.
+    if donut_elevator.velocity(PERCENT) <= 2.0:
         donut_elevator.spin_for(REVERSE, 30, DEGREES, 100, PERCENT)
 
     wait(5, SECONDS)
 
+    # This is redundant but it's better to be sure.
     drivetrain.stop()
     donut_elevator.stop()
-    
-controller_clear_counter = 0
 
 
 def loop():
@@ -145,8 +161,6 @@ def loop():
 
         left_group.spin(FORWARD, left_velocity, PERCENT)
         right_group.spin(FORWARD, right_velocity, PERCENT)
-    
-
 #endregion Main routines
 
 competition = Competition(loop, auton)
