@@ -132,7 +132,7 @@ def auton():
     wait(0.5, SECONDS)
 
     drivetrain.turn_for(AUTON_STARTING_SIDE, 50, DEGREES)
-    drivetrain.drive_for(FORWARD, 2, INCHES) #Realign the stake after turning
+    drivetrain.drive_for(FORWARD, 2, INCHES) # Realign the stake after turning
     donut_elevator.spin(FORWARD, 100, PERCENT)
 
     wait(1, SECONDS)
@@ -140,6 +140,8 @@ def auton():
     # Unstuck the donut elevator if it is stuck.
     if donut_elevator.velocity(PERCENT) <= 2.0:
         donut_elevator.spin_for(REVERSE, 30, DEGREES, 100, PERCENT)
+
+    donut_elevator.spin(FORWARD, 100, PERCENT)
 
     drivetrain.drive_for(FORWARD, 26, INCHES, 40, PERCENT)
 
