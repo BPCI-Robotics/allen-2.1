@@ -5,6 +5,9 @@ import math
 DRIVER = "Parthib".upper()
 VEL_PERCENT = 80
 
+DRIVETRAIN_MOTOR_CARTRIDGE = GearSetting.RATIO_18_1
+GEAR_RATIO_MOTOR_TO_WHEEL = 48 / 36
+
 #region Control math functions
 def logistic(x: float) -> float:
     # See https://www.desmos.com/calculator/ckpeuxjv0c
@@ -57,13 +60,13 @@ brain = Brain()
 controller = Controller(PRIMARY)
 
 left_group = MotorGroup(
-                Motor(Ports.PORT1, GearSetting.RATIO_18_1, True),
-                Motor(Ports.PORT2, GearSetting.RATIO_18_1, True)
+                Motor(Ports.PORT1, DRIVETRAIN_MOTOR_CARTRIDGE, True),
+                Motor(Ports.PORT2, DRIVETRAIN_MOTOR_CARTRIDGE, True)
             )
 
 right_group = MotorGroup(
-                Motor(Ports.PORT3, GearSetting.RATIO_18_1, False), 
-                Motor(Ports.PORT4, GearSetting.RATIO_18_1, False)
+                Motor(Ports.PORT3, DRIVETRAIN_MOTOR_CARTRIDGE, False), 
+                Motor(Ports.PORT4, DRIVETRAIN_MOTOR_CARTRIDGE, False)
             )
 
 drivetrain = DriveTrain(
@@ -73,7 +76,7 @@ drivetrain = DriveTrain(
     trackWidth = 230,
     wheelBase = 340,
     units = MM,
-    externalGearRatio = 48 / 36
+    externalGearRatio = GEAR_RATIO_MOTOR_TO_WHEEL
 )
 
 donut_elevator = Motor(Ports.PORT10, GearSetting.RATIO_18_1, True)
